@@ -1,0 +1,386 @@
+
+                <!DOCTYPE html>
+                <html lang="zh">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <meta name="color-scheme" content="light">
+                  <meta name="supported-color-schemes" content="light">
+                  <title>Page 1</title>
+                  <style>
+                    *,
+                    *::before,
+                    *::after {
+                      box-sizing: border-box;
+                      margin: 0;
+                    }
+                    .iframe-outer {
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      bottom: 0;
+                      right: 0;
+                      display: flex;
+                      justify-content: center;
+                      background-color: #E0E0E0;
+                    }
+                    .iframe-wrapper {
+                      width: 100%;
+                      height: 100%;
+                      margin: 0 auto;
+                      transform-origin: center top;
+                      flex-shrink: 0;
+                    }
+                    #dynamicIframe {
+                      border: none;
+                      width: 100%;
+                      height: 100%;
+                    }
+                  </style>
+                  <script>
+                const width = 1920
+                const height = 1080
+                const resolutionRatio = width && height ? width / height : 1
+                const pageNameMap = {
+                  'page_1': 'Page 1'
+                }
+                const allPageIds = ["page_1"]
+                const allFormatPageIdsMap = {"page_1":"page-1"}
+                const IFRAME_MESSAGE_TYPE = {
+                  iframeNavigation: 'iframeNavigation',
+                }
+                const safeAddEventListener = function Tc(e,t,r,n=!1){e.removeEventListener(t,r,n),e.addEventListener(t,r,n)}
+                const processOnclick = (e,t,r)=>{if(r){const n=Ib(t);if(n.methodName&&Op(n.methodName,r))return;e.preventDefault(),e.stopPropagation();const s=n.args||[],i=(s==null?void 0:s.find(u=>u))||"";i&&Pp(i)}}
+                const checkIframeMethod = (e,t)=>{try{return typeof t[e]=="function"||typeof t[e]=="function"}catch(r){return!1}}
+                const postIframeMessage = (targetPageId) => {
+                  window.parent.postMessage({
+                    type: IFRAME_MESSAGE_TYPE.iframeNavigation,
+                    targetPageId,
+                  })
+                }
+                const handleIframeLinkClick = (event) => {
+                  const dynamicIframe = document.querySelector('#dynamicIframe')
+                  if (!dynamicIframe?.contentWindow) {
+                    return
+                  }
+                  const link = event.target.closest('a')
+                  const target = event.target
+                  if (link) {
+                    const href = link.getAttribute('href')
+                    const onclick = link.getAttribute('onclick')
+                    if (href && href !== '#' && !href.startsWith('javascript:')) {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      const targetPageId = getKeyByValueObj(allFormatPageIdsMap, href)
+                      if (targetPageId) {
+                        postIframeMessage(targetPageId)
+                      }
+                      return
+                    }
+                    if (onclick) {
+                      processOnclick(event, onclick, iframe.contentWindow, allFormatPageIdsMap)
+                    } else {
+                      event.preventDefault()
+                      event.stopPropagation() 
+                    }
+                    return
+                  }
+                  const onclick = target.getAttribute('onclick')
+                  if (onclick) {
+                    processOnclick(event, onclick, iframe.contentWindow, allFormatPageIdsMap)
+                  }
+                }
+                function stringExt(link) {
+                  let s = String(link || '')
+                  s = (s.split('#')[0] || '')
+                  s = (s.split('?')[0] || '')
+                  s = s.trim()
+                  s = s.split('/').filter(Boolean).pop() || ''
+                  const lower = s.toLowerCase()
+                  if (lower.endsWith('.html') || lower.endsWith('.php') || lower.endsWith('.aspx')) {
+                    s = s.slice(0, s.lastIndexOf('.'))
+                  }
+                  return s
+                }
+                function formatHref(href) {
+                  if (!href) {
+                    return ''
+                  }
+                  try {
+                    const url = new URL(href, window.location.href)
+                    const pathname = url.pathname || ''
+                    return stringExt(pathname)
+                  } catch {
+                    return stringExt(href)
+                  }
+                }
+                function getKeyByValueObj(obj, value) {
+                  const newValue = formatHref(value)
+                  const keyFind = Object.keys(obj).find(k => k === newValue)
+                  if (keyFind) {
+                    return keyFind
+                  }
+                  return Object.keys(obj).find(k => obj[k] === newValue)
+                }
+                function setIframeSize(w, h) {
+                  const currentContainerRadio = w / h
+                  let widthValue = w
+                  let heightValue = h
+                  let zoom = 1
+                  if (currentContainerRadio > resolutionRatio) {
+                    widthValue = h * resolutionRatio
+                    heightValue = h
+                  } else {
+                    widthValue = w
+                    heightValue = w / resolutionRatio
+                  }
+                  zoom = width ? widthValue / width : 1
+                  return {
+                    width: widthValue / zoom + 'px',
+                    height: heightValue / zoom + 'px',
+                    zoom,
+                  }
+                }
+                function adjustIframeSize() {
+                  const iframeWrapper = document.querySelector(".iframe-wrapper")
+                  const { width, height, zoom } = setIframeSize(window.innerWidth, window.innerHeight)
+                  iframeWrapper.style.height = height
+                  iframeWrapper.style.width = width
+                  iframeWrapper.style.transform = 'scale(' + zoom + ')'
+                }
+                function sanitizeFilename(name) {
+                  return name.replace(/[\/:*?"<>|]/g, '_')
+                }
+                function handlePostMessage(event) {
+                  if (!event.data) {
+                    return
+                  }
+                  const { type, targetPageId } = event.data
+                  const targetPageName = pageNameMap[targetPageId]
+                  if (type === "iframeNavigation" && targetPageId && targetPageName) {
+                    window.location.href = targetPageName + '.html'
+                  }
+                }
+                function setupIframeEvents() {
+                  const iframe = document.getElementById('dynamicIframe')
+                  if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
+                    safeAddEventListener(iframe.contentWindow.document, 'click', handleIframeLinkClick, true)
+                  } else {
+                    setTimeout(setupIframeEvents, 100)
+                  }
+                }
+                window.addEventListener('message', handlePostMessage)
+                window.onload = function() {
+                  adjustIframeSize()
+                  setupIframeEvents()
+                }
+                window.onresize = adjustIframeSize
+                window.onunload = () => {
+                  window.removeEventListener('message', handlePostMessage)
+                }
+              </script>
+                </head>
+                <body>
+                  <div class="iframe-outer">
+                    <div class="iframe-wrapper">
+                      <iframe id="dynamicIframe" srcdoc='<html lang="pt-BR"><head><script>(function(){
+      function stringExt(link) {
+        let s = String(link || &#39;&#39;)
+        s = (s.split(&#39;#&#39;)[0] || &#39;&#39;)
+        s = (s.split(&#39;?&#39;)[0] || &#39;&#39;)
+        s = s.trim()
+        s = s.split(&#39;/&#39;).filter(Boolean).pop() || &#39;&#39;
+        const lower = s.toLowerCase()
+        if (lower.endsWith(&#39;.html&#39;) || lower.endsWith(&#39;.php&#39;) || lower.endsWith(&#39;.aspx&#39;)) {
+          s = s.slice(0, s.lastIndexOf(&#39;.&#39;))
+        }
+        return s
+      }
+      function formatHref(href) {
+        if (!href) {
+          return &#39;&#39;
+        }
+        try {
+          const url = new URL(href, window.location.href)
+          const pathname = url.pathname || &#39;&#39;
+          return stringExt(pathname)
+        } catch {
+          return stringExt(href)
+        }
+      }
+      function getKeyByValueObj(obj, value) {
+        const newValue = formatHref(value)
+        const keyFind = Object.keys(obj).find(k => k === newValue)
+        if (keyFind) {
+          return keyFind
+        }
+        return Object.keys(obj).find(k => obj[k] === newValue)
+      }
+      function emit(to, source){
+        try {
+          if (window.parent) {
+            const allFormatPageIdsMap = {"page_1":"page-1"}
+            const IFRAME_MESSAGE_TYPE = {
+              iframeNavigation: &#39;iframeNavigation&#39;,
+            }
+            const targetPageId = getKeyByValueObj(allFormatPageIdsMap, String(to || &#39;&#39;))
+            if (targetPageId) {
+              window.parent.postMessage({
+                type: IFRAME_MESSAGE_TYPE.iframeNavigation,
+                targetPageId,
+              }, &#39;*&#39;)
+            }
+          }
+        } catch(e) {}
+      }
+      try{
+        if (&#39;navigation&#39; in window &amp;&amp; window.navigation &amp;&amp; typeof window.navigation.addEventListener===&#39;function&#39;){
+          window.navigation.addEventListener(&#39;navigate&#39;, function(e){
+            try{
+              var url = (e.destination &amp;&amp; e.destination.url) || &#39;&#39;;
+              if (e.canIntercept &amp;&amp; typeof e.intercept===&#39;function&#39;){ e.intercept({ handler:function(){} }) }
+              else if (e.preventDefault){ e.preventDefault() }
+              emit(url)
+            }catch(_){}
+          })
+        }
+      }catch(_){}
+    })();</script><meta name="supported-color-schemes" content="light"><meta name="color-scheme" content="light"><style>
+      :root, html, body { color-scheme: light; }
+      html { forced-color-adjust: none; }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aluga+ | IA para Imobiliárias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&amp;amp;display=swap" rel="stylesheet">
+    <style>
+    body {
+        font-family: &#39;Poppins&#39;, sans-serif;
+    }
+</style>
+  <script src="undefined/holder.js"></script><style>
+#is8g {
+  background-image: url("https://spark-builder.s3.us-east-1.amazonaws.com/image/2025/12/13/afee2fee-9626-4260-bc4e-179bfb17af11.png");
+  height: 176px;
+  width: 100%;
+}
+
+#ihudv,
+#iwc1i,
+#ikt4t,
+#iyxf,
+#irtz2,
+#i3fuf {
+  flex-flow: row;
+}
+
+</style></head>
+  <body class="bg-[#F0F2F5]">
+    <main id="iyxf" class="flex items-center justify-center min-h-screen p-4">
+      <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Header Section -->
+        <div class="relative">
+          <div class="h-44 bg-cover bg-center" style="background-image: url(&amp;quot;https://spark-builder.s3.us-east-1.amazonaws.com/image/2025/12/13/afee2fee-9626-4260-bc4e-179bfb17af11.png&amp;quot;); width: 100%; height: 176px;" alt="A futuristic interface showing AI analytics for the real estate industry." id="is8g">
+            <div class="h-full bg-black bg-opacity-50 flex flex-col justify-center items-center text-center px-4">
+              <p class="text-sky-400 font-bold text-sm tracking-widest uppercase">
+                IA criada exclusivamente para
+              </p>
+              <h1 class="text-white text-4xl font-black tracking-wider uppercase">
+                Imobiliárias
+              </h1>
+            </div>
+          </div>
+          <!-- Overlapping Info Box -->
+          <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-11/12">
+            <div class="bg-white px-4 py-3 rounded-lg shadow-lg text-center">
+              <p id="ihudv" class="text-gray-700 font-semibold text-[13px]">
+                A IA que atende seus leads de aluguel 24h e transforma conversas
+                em visitas
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Dotted separator -->
+        <div class="border-t-2 border-dotted border-gray-300 mt-[-1px]"></div>
+        <!-- Content Section -->
+        <div id="iwc1i" class="px-6 pt-12 pb-6">
+          <!-- Title -->
+          <div class="text-center mb-5">
+            <h2 id="ikt4t" class="text-lg font-extrabold text-gray-800 uppercase tracking-tight leading-tight">
+              A IA que atende seus leads&amp;nbsp; 24h
+            </h2>
+            <h2 class="text-lg font-extrabold text-[#3298db] uppercase tracking-tight leading-tight">
+              e transforma conversas em visitas
+            </h2>
+          </div>
+          <!-- Paragraph -->
+          <p id="irtz2" class="text-gray-600 text-center text-[13px] mb-6 leading-relaxed">
+            A Aluga+ é uma inteligência artificial criada para imobiliárias que
+            querem escalar locações e vendas sem aumentar a equipe. Ela responde
+            em segundos, faz as perguntas certas, filtra curiosos e organiza os
+            leads para você focar apenas no fechamento.
+          </p>
+          <!-- Form -->
+          <div>
+            <h3 id="i3fuf" class="font-bold text-gray-800 text-center mb-4 text-base">
+              Deixe seus dados para conhecer a IA da Aluga+
+            </h3>
+            <form class="space-y-3">
+              <input type="text" placeholder="Digite seu nome" class="w-full px-5 py-3 bg-gray-100 rounded-full text-gray-700 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"><input type="text" placeholder="Digite seu melhor WhatsApp" class="w-full px-5 py-3 bg-gray-100 rounded-full text-gray-700 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"><input type="text" placeholder="Digite o nome da sua imobiliária" class="w-full px-5 py-3 bg-gray-100 rounded-full text-gray-700 placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"><button type="submit" class="w-full mt-2 bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-4 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-sm">
+                QUERO CONHECER A IA DE ALUGUEL
+              </button>
+            </form>
+          </div>
+          <!-- Disclaimer -->
+          <p class="text-center text-xs text-gray-400 mt-6 px-4">
+            Prometemos não usar nenhuma informação de contato para enviar
+            qualquer tipo de SPAM. Os dados são protegidos.
+          </p>
+        </div>
+      </div>
+    </main>
+    <script>
+    // No specific JavaScript functionality was requested for this page.
+</script>
+  
+
+<script>
+    const originalBack = window.history.back
+    const originalForward = window.history.forward
+    const originalGo = window.history.go
+    function isValidNavigation(){
+      if(!window.parent.history.state.back || !window.parent.history.state.back.startsWith(&#39;/designPage&#39;)){
+        return false
+      }
+      return true
+    }
+    window.history.back = function(...args) {
+      if(!isValidNavigation()){
+        return
+      }
+      return originalBack.apply(this, args);
+    };
+
+    window.history.forward = function(...args) {
+      if(!isValidNavigation()){
+        return
+      }
+      return originalForward.apply(this, args);
+    };
+
+    window.history.go = function(...args) {
+      if(!isValidNavigation()){
+        return
+      }
+      return originalGo.apply(this, args);
+    };
+  </script></body></html>'></iframe>
+                    </div>
+                  </div>
+
+                </body>
+                </html>
+            
