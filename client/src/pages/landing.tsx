@@ -39,13 +39,6 @@ export default function LandingPage() {
         
         {/* Content Section */}
         <div className="px-6 pt-12 pb-6">
-          {/* Title */}
-          <div className="text-center mb-5">
-            <h2 className="text-lg font-extrabold text-[#3298db] uppercase tracking-tight leading-tight">
-              e transforma conversas em visitas
-            </h2>
-          </div>
-          
           {/* Paragraph */}
           <p className="text-gray-600 text-center text-[13px] mb-6 leading-relaxed">
             A Aluga+ é uma inteligência artificial criada para imobiliárias que
