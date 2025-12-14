@@ -41,9 +41,6 @@ export default function LandingPage() {
         <div className="px-6 pt-12 pb-6">
           {/* Title */}
           <div className="text-center mb-5">
-            <h2 className="text-lg font-extrabold text-gray-800 uppercase tracking-tight leading-tight">
-              A IA que atende seus leads&nbsp; 24h
-            </h2>
             <h2 className="text-lg font-extrabold text-[#3298db] uppercase tracking-tight leading-tight">
               e transforma conversas em visitas
             </h2>
