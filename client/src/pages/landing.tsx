@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
+import { trackFBEvent } from "@/components/FacebookPixel";
+import { trackGAEvent } from "@/components/GoogleAnalytics";
 
 export default function LandingPage() {
   const [, setLocation] = useLocation();
@@ -58,6 +60,8 @@ export default function LandingPage() {
       });
 
       if (response.ok) {
+        trackFBEvent("Lead");
+        trackGAEvent("generate_lead", { event_category: "form", event_label: "landing_page" });
         setLocation("/obrigado");
       } else {
         const error = await response.json();
