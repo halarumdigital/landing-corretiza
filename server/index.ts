@@ -60,6 +60,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Verificar se variáveis de ambiente estão carregadas
+  console.log("=== Verificando variáveis de ambiente ===");
+  console.log("CRM_API_URL:", process.env.CRM_API_URL ? "OK" : "NÃO CONFIGURADO");
+  console.log("CRM_API_TOKEN:", process.env.CRM_API_TOKEN ? "OK" : "NÃO CONFIGURADO");
+  console.log("CRM_LEAD_SOURCE:", process.env.CRM_LEAD_SOURCE || "NÃO CONFIGURADO");
+  console.log("CRM_LEAD_STATUS:", process.env.CRM_LEAD_STATUS || "NÃO CONFIGURADO");
+  console.log("CRM_LEAD_ASSIGNED:", process.env.CRM_LEAD_ASSIGNED || "NÃO CONFIGURADO");
+  console.log("=========================================");
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
