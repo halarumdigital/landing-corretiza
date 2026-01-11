@@ -51,7 +51,7 @@ export default function ObrigadoPage() {
 
           {/* Thank you message */}
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
-            Obrigado pelo seu interesse na Aluga+
+            Obrigado pelo seu interesse na Domyra
           </h2>
 
           <p className="text-gray-600 text-center text-[14px] leading-relaxed">
