@@ -114,7 +114,7 @@ export default function LandingPage() {
         <div className="px-6 pt-12 pb-6">
           {/* Paragraph */}
           <p className="text-gray-600 text-center text-[13px] mb-6 leading-relaxed">
-            A Aluga+ é uma inteligência artificial criada para imobiliárias que
+            A Domyra é uma inteligência artificial criada para imobiliárias que
             querem escalar locações e vendas sem aumentar a equipe. Ela responde
             em segundos, faz as perguntas certas, filtra curiosos e organiza os
             leads para você focar apenas no fechamento.
@@ -123,7 +123,7 @@ export default function LandingPage() {
           {/* Form */}
           <div>
             <h3 className="font-bold text-gray-800 text-center mb-4 text-base">
-              Deixe seus dados para conhecer a IA da Aluga+
+              Deixe seus dados para conhecer a IA da Domyra
             </h3>
             <form className="space-y-3" onSubmit={handleSubmit}>
               <input
